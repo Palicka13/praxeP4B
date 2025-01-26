@@ -1,0 +1,67 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: eberryapache-service
+  labels:
+    app: eberryapache
+spec:
+  selector:
+    app: eberryapache
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: eberryapache-deployment
+  labels:
+    app: eberryapache
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: eberryapache
+  template:
+    metadata:
+      labels:
+        app: eberryapache
+    spec:
+      imagePullSecrets:
+        - name: regcred
+      containers:
+      - name: eberryapache-deployment
+        image: registry.gitlab.com/skymedia-dev/eberry/eberry-apache:latest
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: sessions
+          mountPath: /var/www/html/skycms/sessions
+        env:
+        - name: LOG_OUTPUT 
+          value: "stdout"
+        - name: APP_ENV 
+          value: "test"
+        - name: WEB_PATH
+          value: ""
+        - name: WEB_SSL
+          value: "false"
+        - name: WEB_DOMAIN 
+          value: "localhost"
+        - name: DB_HOST 
+          value: "mariadb"
+        - name: DB_SCHEMA 
+          value: "eberydb"
+        - name: DB_USERNAME 
+          value: "user"
+        - name: DB_PASSWORD
+          value: "heslo"
+        - name: REDIS_HOST 
+          value: "redis"
+      volumes:
+        - name: sessions
+          hostPath:
+            path: /sessions
+            type: DirectoryOrCreate

@@ -1,0 +1,33 @@
+version: '1'
+
+services:
+  eberryApache:
+    image: registry.gitlab.com/skymedia-dev/eberry/eberry-apache:latest
+    ports: 
+      - 80:80
+    volumes:
+      - ./.env:/var/www/html/.env
+      - ./sessions:/var/www/html/skycms/sessions
+
+  mariadb:
+    image: mariadb
+    restart: always
+    ports:
+      - 3306:3306
+    environment:
+      MARIADB_USER: user
+      MARIADB_PASSWORD: heslo
+      MARIADB_DATABASE: eberydb
+      MARIADB_ROOT_PASSWORD: rootheslo
+    volumes:
+      - ./docker-eberry.sql:/var/docker-eberry.sql
+
+  redis:
+    image: redis
+
+  phpmyadmin:
+    image: phpmyadmin 
+    environment:
+      PMA_HOST: mariadb
+    ports:
+      - 8080:80
