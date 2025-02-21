@@ -1,0 +1,91 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: mariadb-service
+  labels:
+    app: mariadb
+spec:
+  selector:
+    app: mariadb
+  ports:
+    - protocol: TCP
+      port: 3306
+      targetPort: 3306
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mariadb-deployment
+  labels:
+    app: mariadb
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mariadb
+  template:
+    metadata:
+      labels:
+        app: mariadb
+    spec:
+      containers:
+      - name: mariadb-deployment  
+        image: mariadb:latest
+        ports:  
+        - containerPort: 3306
+        volumeMounts:
+        - name: eberrydata-pv
+          mountPath: "/eberrydata"
+          subPath: docker-eberry.sql
+        env:
+          - name: MARIADB_USER
+            value: "user"
+          - name: MARIADB_PASSWORD
+            value: "heslo"
+          - name: MARIADB_DATABASE
+            value: "eberrydb"
+          - name: MARIADB_ROOT_PASSWORD
+            value: "rootheslo"
+      volumes:
+        - name: eberrydata-pv
+          persistentVolumeClaim:
+            claimName: eberrydata-pvc
+#
+#          - name: MARIADB_USER
+#            value: "user"
+#          - name: MARIADB_PASSWORD
+#            value: "heslo"
+#          - name: MARIADB_DATABASE
+#            value: "eberry2db"
+#          - name: MARIADB_ROOT_PASSWORD
+#            value: "rootheslo"
+#      volumes:
+#        - name: eberrydata-pv
+#          persistentVolumeClaim:
+#            claimName: eberrydata-pvc
+
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: eberrydata-pv
+spec:
+  capacity:
+    storage: 4Gi
+  accessModes:
+    - ReadWriteMany
+  hostPath:
+    path: "/eberrydata"
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: eberrydata-pvc
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 2Gi
